@@ -36,7 +36,7 @@ jobs:
       - name: Check vulnerabilities 
         run: |
           docker images
-          docker scout quickview
+          docker run -v /var/run/docker.sock:/var/run/docker.sock --rm aquasec/trivy image --no-progress ${{ steps.meta.outputs.tags }}
 
       - name: Start a container from the image
         run: |
