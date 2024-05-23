@@ -1,0 +1,54 @@
+name: Branch を Push したらイメージをビルドする
+
+on:
+  push:
+    branches:
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**'        # matches every branch
+      - '!main'     # excludes main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-test-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build a image
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          #platforms: linux/amd64,linux/arm64
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Check vulnerabilities 
+        run: |
+          docker images
+          docker scout quickview
+
+      - name: Start a container from the image
+        run: |
+          docker images
+          docker run -d --name test -p 9300:9300 ${{ steps.meta.outputs.tags }}
+          docker ps -a
+
+      - name: Test the container
+        run: |
+          sleep 5
+          curl --silent --retry 3 --include  http://127.0.0.1:9300/ping | grep "200 OK" 
+          [ $? -ne 0 ] && (echo "error"; exit 1)
+
+          exit 0
+
