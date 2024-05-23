@@ -1,4 +1,4 @@
-FROM node:21.7.3-slim
+FROM node:lts-alpine3.20
 
 # アプリケーションのインストール
 ENV NODE_ENV production
