@@ -49,6 +49,5 @@ jobs:
           sleep 5
           curl --silent --retry 3 --include  http://127.0.0.1:9300/ping | grep "200 OK" 
           [ $? -ne 0 ] && (echo "error"; exit 1)
-
           exit 0
 
